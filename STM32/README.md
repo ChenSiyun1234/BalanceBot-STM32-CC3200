@@ -43,7 +43,7 @@ HC-05 on **USART2 @ 9600** (transparent SPP). Send single characters from any BT
 | **Tune** | `1`–`5` select Kp / Kd / vKp / vKi / dead-zone · `+`/`-` step · `M` capture midpoint |
 | **Save** | `W` save all to flash (verified) · `Z` erase saved config |
 
-Full tuning procedure: **[TUNING.md](TUNING.md)**.
+Full tuning procedure: **[TUNING.en.md](TUNING.en.md)** (English) · **[TUNING.md](TUNING.md)** (中文).
 
 ---
 
@@ -53,7 +53,7 @@ Full tuning procedure: **[TUNING.md](TUNING.md)**.
 
 <sub>↑ full connection schematic · also: a [pin-out card](images/pinout_stm32.png) showing every Blue-Pill header pin.</sub>
 
-**Key signals** — summary only; wire from **[WIRING.md](WIRING.md)**, which has the full table, power-rail plan, and 5 V-tolerance cautions:
+**Key signals** — summary only; wire from the full guide **[WIRING.en.md](WIRING.en.md)** (English) · **[WIRING.md](WIRING.md)** (中文), which has the full table, power-rail plan, and 5 V-tolerance cautions:
 
 | Function | Peripheral | STM32 pin(s) |
 |----------|-----------|--------------|
