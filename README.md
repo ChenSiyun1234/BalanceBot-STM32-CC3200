@@ -93,20 +93,20 @@ The **angle loop** keeps it upright; the **velocity loop** stops it and drives i
 
 ---
 
-## Hardware · 器材
+## Hardware
 
-Two firmware builds on the **TARKBOT R3T** chassis; the core parts are shared. Full bilingual list → **[hardware/BOM.md](hardware/BOM.md)**.
+Two firmware builds on the **TARKBOT R3T** chassis; the core parts are shared. Full parts list → **[hardware/BOM.en.md](hardware/BOM.en.md)**.
 
-| Part | 部件 | Role · 作用 |
-|------|------|-------------|
-| STM32F103C8T6 "Blue Pill" | STM32 最小系统板 | Main MCU (flagship) · 主控 |
-| TB6612 / MD220A driver + power board | TB6612 驱动 / 电源板 | Motor driver **and the cart's power hub** · 电机驱动 + 整车电源中枢 |
-| MC130 encoder gear-motors ×2 | MC130 编码电机 ×2 | Drive + wheel-speed feedback · 驱动 + 测速 |
-| MPU-6050 (GY-521) | 六轴 IMU | Tilt / attitude sensing (DMP) · 姿态 |
-| SSD1306 OLED · HC-05 · HC-SR04 | OLED · 蓝牙 · 超声波 | Display · remote · avoidance · 显示 / 遥控 / 避障 |
-| 2S Li-ion ~7.4 V | 2S 锂电池 ~7.4 V | One battery → MD220A powers all · 单电池经 MD220A 供整车 |
+| Part | Role |
+|------|------|
+| STM32F103C8T6 "Blue Pill" | Main MCU (flagship) |
+| TB6612 / MD220A driver + power board | Motor driver **and the cart's power hub** |
+| MC130 encoder gear-motors ×2 | Drive + wheel-speed feedback |
+| MPU-6050 (GY-521) | Tilt / attitude sensing (DMP) |
+| SSD1306 OLED · HC-05 · HC-SR04 | Display · remote · avoidance |
+| 2S Li-ion ~7.4 V | One battery → MD220A powers all |
 
-→ **Full bill of materials** (specs · indicative prices · buy links): **[English](hardware/BOM.en.md)** · **[中文](hardware/BOM.md)**
+→ **Full bill of materials** (specs · indicative prices · buy links): **[hardware/BOM.en.md](hardware/BOM.en.md)**
 
 ---
 
@@ -114,22 +114,18 @@ Two firmware builds on the **TARKBOT R3T** chassis; the core parts are shared. F
 
 ```
 self-balancing-cart/
-├── STM32/        flagship firmware — Keil project + WIRING + TUNING (中 / EN)
+├── STM32/        flagship firmware — Keil project + WIRING + TUNING guides
 ├── CC3200/       TI CCS firmware — Wi-Fi / AWS-IoT build
 ├── desktop-controller/  Python desktop remote app (Tkinter + Bluetooth)
 ├── android-app/         Android (Kotlin) remote app — Bluetooth SPP
-├── hardware/     bill of materials — BOM.en.md (EN) + BOM.md (中)
+├── hardware/     bill of materials — BOM.en.md
 ├── tools/        diagram generators (pinout / schematic, Python)
 └── README.md     (this file)
 ```
 
-**Build docs:** **[STM32](STM32/README.md)** · **[CC3200](CC3200/README.md)** · **[Desktop app](desktop-controller/README.md)** · **[Android app](android-app/README.md)** · Bill of materials **[EN](hardware/BOM.en.md)** / **[中](hardware/BOM.md)**
+**Build docs:** **[STM32](STM32/README.md)** · **[CC3200](CC3200/README.md)** · **[Desktop app](desktop-controller/README.md)** · **[Android app](android-app/README.md)** · **[Bill of materials](hardware/BOM.en.md)**
 
-**Guides (bilingual):**
-| | English | 中文 |
-|---|---|---|
-| Wiring / hardware | **[WIRING.en.md](STM32/WIRING.en.md)** | **[WIRING.md](STM32/WIRING.md)** |
-| PID tuning | **[TUNING.en.md](STM32/TUNING.en.md)** | **[TUNING.md](STM32/TUNING.md)** |
+**Guides:** **[Wiring / hardware](STM32/WIRING.en.md)** · **[PID tuning](STM32/TUNING.en.md)**
 
 ---
 
