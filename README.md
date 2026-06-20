@@ -4,7 +4,7 @@
 
 <!-- GitHub topics for search: self-balancing-robot, stm32, inverted-pendulum, pid-control, freertos, two-wheel-robot, embedded-c, obstacle-avoidance, robotics, cortex-m -->
 
-Bare-metal embedded-C firmware for a two-wheel **inverted-pendulum robot** that balances itself, drives over Bluetooth, holds its position when pushed, and scans-and-turns around obstacles. Built on two MCU platforms. *(UC Davis EEC 172 final project.)*
+Bare-metal embedded-C firmware for a two-wheel **inverted-pendulum robot** that balances itself, drives over Bluetooth, holds its position when pushed, and scans-and-turns around obstacles. Built on two MCU platforms, with companion **desktop and Android remote-control apps**. *(UC Davis EEC 172 final project.)*
 
 ![Language](https://img.shields.io/badge/Embedded-C-blue)
 ![MCU](https://img.shields.io/badge/MCU-STM32F103%20%C2%B7%20CC3200-green)
@@ -58,6 +58,17 @@ Kalman sensor fusion · colour OLED · **Wi-Fi / AWS-IoT** email alerts on power
 
 ---
 
+## Remote-Control Apps (Desktop & Mobile)
+
+Two companion apps drive the robot over its HC-05 Bluetooth link — rounding the project into a full **hardware → firmware → software** stack. Both speak the firmware's command set (`F`/`B`/`L`/`R`/`S` + a speed digit); hold a direction to drive, release to stop.
+
+| Desktop controller — Python | Mobile app — Android / Kotlin |
+|:---:|:---:|
+| <img src="desktop-controller/docs/screenshot.png" width="300" alt="Python desktop remote controller"> | <img src="android-app/docs/screenshot.png" width="190" alt="Android remote-control app"> |
+| Tkinter GUI + keyboard control · serial/Bluetooth I/O · hardware-free simulation mode. **[Details →](desktop-controller/README.md)** | Touch D-pad over classic-Bluetooth **SPP** · speed slider · runtime-permission handling. **[Details →](android-app/README.md)** |
+
+---
+
 ## Control architecture
 
 ```
@@ -105,12 +116,14 @@ Two firmware builds on the **TARKBOT R3T** chassis; the core parts are shared. F
 self-balancing-cart/
 ├── STM32/        flagship firmware — Keil project + WIRING + TUNING (中 / EN)
 ├── CC3200/       TI CCS firmware — Wi-Fi / AWS-IoT build
+├── desktop-controller/  Python desktop remote app (Tkinter + Bluetooth)
+├── android-app/         Android (Kotlin) remote app — Bluetooth SPP
 ├── hardware/     bill of materials — BOM.en.md (EN) + BOM.md (中)
 ├── tools/        diagram generators (pinout / schematic, Python)
 └── README.md     (this file)
 ```
 
-**Build docs:** **[STM32](STM32/README.md)** · **[CC3200](CC3200/README.md)** · Bill of materials **[EN](hardware/BOM.en.md)** / **[中](hardware/BOM.md)**
+**Build docs:** **[STM32](STM32/README.md)** · **[CC3200](CC3200/README.md)** · **[Desktop app](desktop-controller/README.md)** · **[Android app](android-app/README.md)** · Bill of materials **[EN](hardware/BOM.en.md)** / **[中](hardware/BOM.md)**
 
 **Guides (bilingual):**
 | | English | 中文 |
