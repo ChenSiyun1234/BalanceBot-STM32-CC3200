@@ -7,7 +7,7 @@ Self-balancing two-wheel robot on a generic **STM32F103C8T6 "Blue Pill"** with h
 | **MCU** | STM32F103C8T6 (Cortex-M3, 72 MHz, 64 KB flash / 20 KB RAM) |
 | **Toolchain** | Keil MDK µVision 5 · Arm Compiler 5 (V5.06) |
 | **Library / RTOS** | STM32F10x StdPeriph + FreeRTOS V9 (heap_4, 8 KB heap) |
-| **Status** | ✅ Running on hardware — balancing, remote drive, live tuning & flash config verified; ultrasonic avoidance in bring-up |
+| **Status** | Running on hardware — balancing, remote drive, live tuning & flash config verified; ultrasonic avoidance in bring-up |
 
 ---
 

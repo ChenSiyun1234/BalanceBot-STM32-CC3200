@@ -7,7 +7,7 @@ Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip
 | **MCU** | TI CC3200 (CC3200-LAUNCHXL, Cortex-M4 + Wi-Fi) |
 | **Toolchain** | Code Composer Studio 9.3+ · TI Arm compiler `armcl` 20.2.7 · UniFlash |
 | **Build** | Bare-metal (SimpleLink SDK 1.5.0) |
-| **Status** | ✅ Working |
+| **Status** | Complete — running on hardware |
 
 ---
 
