@@ -14,6 +14,23 @@ a built-in simulator, so it can be developed, demoed, and tested offline.
 
 ---
 
+## Live demo (served to an Android phone over Wi-Fi)
+
+The dashboard is responsive and works from any browser on the network. Below it
+is served by `python -m api.server` on a laptop and opened on an Android phone at
+`http://<laptop-ip>:8000`:
+
+| Balancing — Angle Kp = 14 | Unstable — Angle Kp = 0 |
+|:---:|:---:|
+| ![Dashboard streaming, cart upright](docs/screenshots/01-dashboard.png) | ![Dashboard after dropping the gain, cart fallen](docs/screenshots/02-fallen.png) |
+
+Dropping the **Angle Kp** gain to 0 from the phone is sent to the API over REST;
+the simulator immediately destabilises — the sawtooth trace is the cart repeatedly
+toppling and re-righting — and the **State** card flips to *fallen*. That is the
+full **phone → REST → simulator → Server-Sent-Events → phone** round trip.
+
+---
+
 ## Architecture
 
 ```

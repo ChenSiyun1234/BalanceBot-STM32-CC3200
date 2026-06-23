@@ -8,7 +8,7 @@
 const MAX_POINTS = 160;
 const $ = (id) => document.getElementById(id);
 
-const chart = new Chart($("chart"), {
+const chart = (typeof Chart !== "undefined") ? new Chart($("chart"), {
   type: "line",
   data: {
     labels: [],
@@ -33,7 +33,7 @@ const chart = new Chart($("chart"), {
     },
     plugins: { legend: { display: false } },
   },
-});
+}) : null;
 
 function setConnection(ok) {
   const el = $("conn");
@@ -50,14 +50,16 @@ function renderTelemetry(t) {
   $("state-card").classList.toggle("bad", !t.upright);
   $("state-card").classList.toggle("ok", t.upright);
 
-  const ds = chart.data.datasets[0].data;
-  ds.push(t.pitch_deg);
-  chart.data.labels.push("");
-  if (ds.length > MAX_POINTS) {
-    ds.shift();
-    chart.data.labels.shift();
+  if (chart) {
+    const ds = chart.data.datasets[0].data;
+    ds.push(t.pitch_deg);
+    chart.data.labels.push("");
+    if (ds.length > MAX_POINTS) {
+      ds.shift();
+      chart.data.labels.shift();
+    }
+    chart.update("none");
   }
-  chart.update("none");
 }
 
 async function loadGains() {
