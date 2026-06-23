@@ -1,0 +1,13 @@
+# Android / Gradle build output
+.gradle/
+build/
+/app/build/
+/captures/
+
+# Local config (machine-specific — never commit)
+local.properties
+
+# IDE
+*.iml
+.idea/
+.DS_Store
