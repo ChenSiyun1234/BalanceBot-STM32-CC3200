@@ -4,13 +4,22 @@
 
 <!-- GitHub topics for search: self-balancing-robot, stm32, inverted-pendulum, pid-control, freertos, two-wheel-robot, embedded-c, obstacle-avoidance, robotics, cortex-m -->
 
-Bare-metal embedded-C firmware for a two-wheel **inverted-pendulum robot** that balances itself, drives over Bluetooth, holds its position when pushed, and scans-and-turns around obstacles. Built on two MCU platforms, with a companion **software suite** — a web telemetry dashboard + **REST/SSE API**, an **AWS-IoT** cloud path, and native **Android & desktop** remote apps. *(UC Davis EEC 172 final project.)*
+Embedded-C firmware for a two-wheel **inverted-pendulum robot** that balances itself, drives over Bluetooth, holds its position when pushed, and scans-and-turns around obstacles. I independently expanded the platform across two MCU implementations and a companion **software suite**: a web telemetry dashboard + **REST/SSE API**, an **AWS-IoT** cloud path, and native **Android & desktop** remote apps.
 
 ![Language](https://img.shields.io/badge/Embedded-C-blue)
 ![MCU](https://img.shields.io/badge/MCU-STM32F103%20%C2%B7%20CC3200-green)
 ![RTOS](https://img.shields.io/badge/RTOS-FreeRTOS-orange)
 ![Control](https://img.shields.io/badge/Control-Cascaded%20PID-red)
 ![Status](https://img.shields.io/badge/status-running%20on%20hardware-brightgreen)
+
+## Project provenance
+
+This repository combines two related implementations on the same TARKBOT R3T chassis:
+
+- The **STM32 flagship**, control extensions, obstacle-avoidance path, tuning tools, and companion applications are an independent personal robotics project.
+- The **CC3200 connected variant** began as the freely chosen design for my UC Davis EEC 172 final project and focuses on Wi-Fi, AWS IoT, telemetry, and alerts.
+
+BalanceBot was not a prescribed EEC 172 assignment. The course final project was open-ended; only the CC3200 branch originated in that course context.
 
 A two-wheel cart keeps itself upright with a **cascaded three-loop PID controller** (angle + velocity + heading) running at **100 Hz inside the IMU's data-ready interrupt**, fed by **on-chip DMP sensor fusion**. It is remote-controlled over Bluetooth, returns to its start point when pushed, sweeps a fixed ultrasonic sensor to find the clearest heading around obstacles, tunes its own gains live, and persists them to internal flash.
 
