@@ -33,13 +33,13 @@
 | 9 | **STM32F103C8T6 最小系统板（Blue Pill）** | 1 | Cortex-M3 @ 72 MHz，64 KB Flash / 20 KB RAM，LQFP48；板载 AMS1117-3.3 + PC13 LED + USB + 8 MHz/32.768 kHz 晶振——**主控** | ¥8–15 | [淘宝](https://s.taobao.com/search?q=STM32F103C8T6) · [Ali](https://www.aliexpress.com/wholesale?SearchText=STM32F103C8T6) |
 | 10 | **SSD1306 0.96″ OLED（I²C）** | 1 | 128×64 单色，4 针（VCC/GND/SCL/SDA）——状态显示 | ¥8–15 | [淘宝](https://s.taobao.com/search?q=0.96+OLED+SSD1306+IIC) · [Ali](https://www.aliexpress.com/wholesale?SearchText=0.96+OLED+SSD1306+IIC) |
 | 11 | **HC-05 蓝牙模块** | 1 | SPP 透传，默认 9600 波特 / 配对码 1234——手机遥控 | ¥12–25 | [淘宝](https://s.taobao.com/search?q=HC-05+bluetooth) · [Ali](https://www.aliexpress.com/wholesale?SearchText=HC-05+bluetooth) |
-| 12 | **HC-SR04 超声波模块** | 1 | 2–400 cm，4 针（VCC/TRIG/ECHO/GND）——避障测距 | ¥3–8 | [淘宝](https://s.taobao.com/search?q=HC-SR04) · [Ali](https://www.aliexpress.com/wholesale?SearchText=HC-SR04) |
+| 12 | **HC-SR04 超声波模块** | 1 | 2–400 cm，4 针（VCC/TRIG/ECHO/GND）——测距 | ¥3–8 | [淘宝](https://s.taobao.com/search?q=HC-SR04) · [Ali](https://www.aliexpress.com/wholesale?SearchText=HC-SR04) |
 
 ## CC3200 版
 
 | # | 部件 | 数量 | 关键规格 / 作用 | 参考价 | 购买 |
 |---|------|:--:|------------------|:--:|-----|
-| 13 | **CC3200 LaunchPad（CC3200-LAUNCHXL）** | 1 | Cortex-M4 + 片上 Wi-Fi——主控（用于 AWS-IoT 邮件告警） | $40–60 | [TI 官网](https://www.ti.com/tool/CC3200-LAUNCHXL) · [Mouser](https://www.mouser.com/c/?q=CC3200-LAUNCHXL) |
+| 13 | **CC3200 LaunchPad（CC3200-LAUNCHXL）** | 1 | Cortex-M4 + 片上 Wi-Fi——主控（用于 AWS-IoT 告警） | $40–60 | [TI 官网](https://www.ti.com/tool/CC3200-LAUNCHXL) · [Mouser](https://www.mouser.com/c/?q=CC3200-LAUNCHXL) |
 | 14 | **SSD1351 1.5″ 彩色 OLED（SPI）** | 1 | 128×128 RGB，7 针 4 线 SPI——彩色显示 | ¥30–50 | [淘宝](https://s.taobao.com/search?q=1.5+OLED+SSD1351) · [Ali](https://www.aliexpress.com/wholesale?SearchText=1.5+OLED+SSD1351) |
 
 ---

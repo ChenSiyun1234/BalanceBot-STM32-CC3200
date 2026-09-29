@@ -2,7 +2,7 @@
 
 > This firmware now has its own repository with host unit tests and CI: [cc3200-balancing-cart](https://github.com/ChenSiyun1234/cc3200-balancing-cart). This folder keeps the original EEC 172 version.
 
-Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip Wi-Fi). Keeps itself upright with a PD balance loop fed by a **Kalman-filtered IMU**, shows live telemetry on a colour OLED, and **posts an alert to AWS IoT over Wi-Fi** at power-on and when it falls over.
+Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip Wi-Fi). Keeps itself upright with a PD balance loop fed by a **Kalman-filtered IMU**. A colour OLED shows live telemetry, and the cart **posts an alert to AWS IoT over Wi-Fi** at power-on and when it falls over.
 
 | | |
 |---|---|
@@ -23,14 +23,14 @@ Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip
 
 ## Features
 
-- **Self-balancing** — inner **angle PD** (tilt + gyro) summed with an optional **velocity PI** (encoders) and **yaw-rate turn** loop into one motor command; angle loop at **200 Hz**.
-- **Sensor fusion** — MPU-6050 accel + gyro fused by a **2-state Kalman filter** (angle + gyro-bias) for a smooth, drift-free tilt estimate.
+- **Self-balancing** — inner **angle PD** (tilt + gyro) summed with an optional **velocity PI** (encoders) and **yaw-rate turn** loop into one motor command; the loop is paced at a nominal **200 Hz** (5 ms).
+- **Sensor fusion** — MPU-6050 accel + gyro fused by a **2-state Kalman filter** (angle + gyro-bias), so the tilt estimate corrects for gyro drift. The filter math follows Kristian Lauszus's KalmanFilter library (TKJ Electronics).
 - **Motor drive** — TB6612FNG dual H-bridge at ~19.6 kHz PWM (inaudible).
 - **Colour telemetry** — SSD1351 128×128 OLED (SPI) shows state, tilt, motor output, and live PID gains.
-- **Live serial tuning** — adjust every PID gain over the UART0 console at runtime; no recompile.
-- **Wi-Fi alerts** *(optional)* — posts an "online" message at power-on and one alert per fall to an **AWS IoT Thing Shadow over TLS**.
+- **Live serial tuning** — adjust the balance gains over the UART0 console at runtime; no recompile.
+- **Wi-Fi alerts** *(optional)* — posts an "online" message at power-on and at most one alert per fall to an **AWS IoT Thing Shadow over HTTPS/TLS**. The Wi-Fi/TLS code comes from the course's lab project (see [Credits](#credits)).
 
-> Ultrasonic ranging, buzzer, and HC-05 remote are scaffolded but disabled in this build. The encoder and velocity-loop code is included; both are switched off in [`src/hw_config.h`](src/hw_config.h) for this build.
+> The encoder and velocity-loop code is included; both are switched off in [`src/hw_config.h`](src/hw_config.h) for this build.
 
 ---
 
@@ -92,4 +92,13 @@ The CC3200 SDK 1.5.0 is a third-party dependency and is not committed here.
 
 ---
 
-*Sibling build: the [STM32 version](../STM32/README.md) runs the same control law with Bluetooth remote, ultrasonic avoidance, live tuning, and flash-persisted config.*
+## Credits
+
+- `src/network_utils.c/.h` come from the EEC 172 course's `aws-rest-api-ssl-demo` lab project, which builds on TI's SimpleLink SSL example. `cart_email.c` sends its POST and sets the clock the same way.
+- `Adafruit_GFX.c/.h`, `Adafruit_SSD1351.h`, `glcdfont.h` and the display code in `Adafruit_OLED.c` are Adafruit's SSD1351 library as ported to the CC3200 for EEC 172. `oled_test.h` is a course header.
+- The Kalman filter math in `kalman.c` follows Kristian Lauszus's KalmanFilter library (TKJ Electronics, GPL-2.0).
+- `src/common/*`, `bma222drv.c/.h` and `cc3200v1p32.cmd` come from TI's CC3200 SDK.
+
+---
+
+*Sibling build: the [STM32 version](../STM32/README.md) runs XTARK's cascaded balancing controller, ported to an STM32F103, with Bluetooth commands for driving and live tuning.*

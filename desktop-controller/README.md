@@ -1,16 +1,16 @@
 # BalanceBot Remote Controller
 
-A Python (Tkinter) desktop remote that drives a self-balancing two-wheel robot over its HC-05 Bluetooth link by streaming single-character drive commands to the robot's STM32 firmware.
+A Python (Tkinter) desktop remote that drives a self-balancing two-wheel robot over its HC-05 Bluetooth link by streaming single-letter drive commands to the robot's STM32 firmware.
 
 ## Overview
 
 This sub-project is the software companion to a self-balancing two-wheel robot. The robot itself is split across three layers:
 
 - Hardware: the chassis, motors, IMU, motor driver, and an HC-05 Bluetooth module.
-- Firmware: bare-metal STM32 code that runs the balance loop (keeps the robot upright) and listens for drive commands on the HC-05 UART link.
+- Firmware: STM32 code on FreeRTOS that runs the balance loop (keeps the robot upright) and listens for drive commands on the HC-05 UART link.
 - Software (this project): a desktop "remote" that lets a human steer the robot while the firmware handles balancing.
 
-The firmware keeps the robot upright on its own. It does not need this app to stay balanced — this app only sends the higher-level intent (drive forward, turn, stop, change speed). The division of responsibility is deliberate: balancing is a hard real-time control problem that belongs on the microcontroller, while steering is a soft, human-paced task that is comfortable to do from a laptop GUI.
+The firmware keeps the robot upright on its own. It does not need this app to stay balanced — this app only sends the higher-level intent (drive forward, turn, stop). The division of responsibility is deliberate: balancing is a hard real-time control problem that belongs on the microcontroller, while steering is a soft, human-paced task that is comfortable to do from a laptop GUI.
 
 The connection path is entirely standard Windows Bluetooth serial. Once the HC-05 module is paired with the PC, Windows assigns it an outgoing serial COM port. Opening that COM port is what establishes the Bluetooth connection — there is no separate "connect" handshake in the protocol. This controller opens the port, then writes ASCII command characters that the firmware parses one byte at a time.
 
@@ -27,7 +27,7 @@ Desktop controller showing the connection banner, status line, on-screen D-pad, 
 - Tkinter desktop GUI with an on-screen directional pad (forward / back / left / right / stop) and speed up / down buttons.
 - Full keyboard control: `WASD` and arrow keys for direction, `Space` to stop, `+` / `-` (and `=`) to change speed.
 - Single-character command protocol decoupled from the UI, implemented in the reusable `BalanceBotLink` class.
-- Adjustable speed `0`-`9`, sent alongside each direction command (the current speed defaults to `5`).
+- A speed digit `0`-`9` sent after each direction command (the current value defaults to `5`).
 - No-hardware simulation fallback: runs and logs commands with no `pyserial` and no serial port, so the logic is testable and the app demos offline.
 - Connection state surfaced in the UI: a green "CONNECTED" banner with the port name, or an amber "SIMULATION (no serial port)" banner.
 - Safety stop on disconnect: the link sends `S` (stop) before closing the serial port, so the robot does not keep driving if the window is closed.
@@ -76,7 +76,7 @@ The app is a thin, two-layer design. The GUI layer (`run_gui`) captures user int
                       v
         +---------------------------+
         | STM32 firmware (UART)     |
-        | parses F/B/L/R/S + digit  |
+        | parses F/B/L/R/S commands |
         | balance loop stays local  |
         +---------------------------+
 ```
@@ -113,7 +113,7 @@ Inside `balancebot_controller.py`:
 
 ## Command-protocol reference
 
-The protocol is one ASCII character per action, optionally followed by a single speed digit `0`-`9`. Commands are written to the serial port as raw ASCII bytes with no terminator, newline, or framing. This matches the command set the robot's firmware expects on its HC-05 UART link.
+The protocol is one ASCII character per action, optionally followed by a single speed digit `0`-`9`. Commands are written to the serial port as raw ASCII bytes with no terminator, newline, or framing. The command characters are the drive commands of the robot's firmware (`STM32/Robot/ax_control.c`).
 
 | Action | Command char | Bytes on the wire | Example with speed 5 |
 |---|---|---|---|
@@ -121,7 +121,7 @@ The protocol is one ASCII character per action, optionally followed by a single 
 | Backward | `B` | `0x42` | `B5` (`0x42 0x35`) |
 | Left | `L` | `0x4C` | `L5` (`0x4C 0x35`) |
 | Right | `R` | `0x52` | `R5` (`0x52 0x35`) |
-| Stop | `S` | `0x53` | `S` (sent without a speed digit) |
+| Stop | `S` | `0x53` | `S5` from Stop or `Space`; a bare `S` on close |
 
 Encoding rules, as enforced by `BalanceBotLink.send`:
 
@@ -133,7 +133,7 @@ Encoding rules, as enforced by `BalanceBotLink.send`:
 
 The protocol is request-only. There is no response message defined in this app; the firmware acts on each character as it arrives. In simulation mode the "response" is observational only: the payload string is appended to `BalanceBotLink.log` so tests and demos can inspect what would have been transmitted.
 
-In the GUI, the current speed (`state["speed"]`, default `5`, clamped to `0`-`9`) is sent with every direction press, so a forward press at speed 7 sends `F7`. The stop button and the `Space` key send the stop command through the same `act("stop")` path, which includes the current speed digit (for example `S5`); the firmware treats `S` as stop regardless of any trailing digit.
+In the GUI, the current speed (`state["speed"]`, default `5`, clamped to `0`-`9`) is sent with every direction press, so a forward press at speed 7 sends `F7`. The stop button and the `Space` key send the stop command through the same `act("stop")` path, which includes the current speed digit (for example `S5`); the firmware stops on the `S`.
 
 ## Build and Run
 
@@ -206,7 +206,7 @@ python balancebot_controller.py --selftest
 - A bare command with no speed encodes to a single byte, `link.send("F") == b"F"`.
 - An invalid command (`link.send("Z")`) raises `ValueError`.
 
-On success it prints the ordered list of simulated commands and `SELFTEST OK - command protocol works`. Because `BalanceBotLink` and the command logic are decoupled from Tkinter, the same `send()` path that is unit-tested here is the one used in production against real hardware.
+On success it prints the ordered list of simulated commands and `SELFTEST OK - command protocol works`. Because `BalanceBotLink` and the command logic are decoupled from Tkinter, the same `send()` path that is unit-tested here is the one used with real hardware.
 
 ## Deployment / install notes
 
@@ -223,7 +223,6 @@ On success it prints the ordered list of simulated commands and `SELFTEST OK - c
 | `could not open COMx ... Access is denied` / `PermissionError` | The port is already open in another program (a serial monitor, IDE, or a previous instance of this app). | Close the other program or the stale window, then relaunch. |
 | Wrong COM port number | Windows can assign the HC-05 both an incoming and an outgoing port. | Use the Outgoing port from the Bluetooth COM Ports dialog; that is the one that initiates the connection. |
 | Robot does not move although the status line shows commands being sent | Not paired, wrong port, wrong baud, or robot powered off. | Re-pair the HC-05, verify the outgoing port, confirm the firmware baud matches `9600`, and check the robot is powered. |
-| Robot moves but ignores speed | Firmware may not parse the trailing speed digit, or expects a different speed encoding. | Confirm the firmware reads the digit after the command char; align the firmware's expected format with `F`/`B`/`L`/`R` + digit. |
 | `ModuleNotFoundError: No module named 'tkinter'` (Linux) | `tkinter` not installed for your Python. | Install the Tk bindings, for example `sudo apt install python3-tk`. |
 | Robot keeps driving after you close the window | Window was force-killed before `close()` ran. | Use the window close button (which triggers `link.close()` and sends a safety `S`), or press `Space` / Stop first. |
 | `ValueError: unknown command` or `speed must be 0-9` | Calling `BalanceBotLink.send` with a char outside `F/B/L/R/S` or a speed outside `0`-`9`. | Use only the defined command chars and keep speed within `0`-`9`. |
@@ -234,9 +233,9 @@ On success it prints the ordered list of simulated commands and `SELFTEST OK - c
 - GUI: Tkinter (Python standard library)
 - Serial / Bluetooth I/O: pyserial (optional), over an HC-05 SPP COM port
 - CLI: argparse (Python standard library)
-- Target device: STM32 bare-metal firmware with an HC-05 UART link
+- Target device: STM32 firmware (FreeRTOS) with an HC-05 UART link
 - Platform: Windows (Bluetooth serial COM ports); the code is portable to any OS that exposes the HC-05 as a serial port
 
 ---
 
-Companion to the embedded firmware project. Built to round out the robot with the full hardware to firmware to control-software stack.
+Companion to the embedded firmware project.

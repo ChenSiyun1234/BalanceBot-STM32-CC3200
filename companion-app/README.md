@@ -1,6 +1,6 @@
 # BalanceBot Companion App
 
-A dependency-free, full-stack web companion for the self-balancing cart: a live telemetry dashboard, a hand-rolled REST + Server-Sent-Events API written entirely in the Python standard library, a hardware-free physics simulator, an AWS IoT Core path to the real robot, and Infrastructure-as-Code for a serverless deployment.
+A web companion for the self-balancing cart. A Python server built only on the standard library streams telemetry to a browser dashboard and takes PID-gain changes over REST. A built-in simulator stands in for the robot, and an optional adapter reads AWS IoT Core over MQTT. `deploy/` holds serverless templates.
 
 ---
 
@@ -13,9 +13,9 @@ This sub-project is the **software / web / cloud layer** that sits on top of the
    (motors, IMU, MCU)      (STM32 / CC3200)        (companion-app/)
 ```
 
-The firmware running on the cart's microcontroller closes a cascaded PID loop (an inner angle/attitude PD loop, an outer velocity PI loop, and a heading PD loop) to keep the cart upright. The CC3200 build publishes its state to **AWS IoT Core** over MQTT/TLS. This companion app **watches and tunes that loop from a browser**: it streams the cart's live telemetry to a dashboard and lets you push new PID gains back down to it over the same AWS IoT path the firmware already uses.
+The firmware running on the cart's microcontroller keeps the cart upright. The STM32 build runs XTARK's cascaded PID controller (an inner angle PD loop, an outer velocity PI loop, and a turn PD loop); the CC3200 build runs an angle PD loop. This companion app **watches and tunes a balance loop from a browser**: it streams telemetry to a dashboard and sends new PID gains back through a REST API. The telemetry comes from the built-in simulator, or from an MQTT topic on **AWS IoT Core** through an optional adapter. On the robot side, the CC3200 build talks to AWS IoT by POSTing its alerts to a Thing Shadow over HTTPS/TLS.
 
-The defining design constraint is that the **entire app runs with zero hardware and zero cloud credentials**. A built-in inverted-pendulum simulator (`telemetry.SimSource`) stands in for the real robot, so the dashboard, API, and tests can be developed, demoed, and run offline. Switching to the live robot is a single command-line flag (`--source aws`).
+The defining design constraint is that the **entire app runs with zero hardware and zero cloud credentials**. A built-in inverted-pendulum simulator (`telemetry.SimSource`) stands in for the real robot, so the dashboard, API, and tests can be developed, demoed, and run offline. Switching to AWS IoT takes `--source aws` plus the endpoint and certificate flags.
 
 Sister directories in the parent repository hold the embedded firmware (`STM32/`, `CC3200/`); this directory is everything above the metal.
 
@@ -43,10 +43,10 @@ phone (POST /api/pid)  ->  REST  ->  RobotState gains  ->  SimSource physics
 - **Dependency-free Python backend.** The dev server (`api/server.py`) is built on `http.server.ThreadingHTTPServer` from the standard library. No Flask, no FastAPI, no `pip install` required to run or test it.
 - **REST + Server-Sent Events API.** Read/write PID gains over REST; receive live telemetry as a `text/event-stream`. CORS headers and `OPTIONS` preflight are handled so the React dev server (different origin) can talk to it.
 - **Hardware-free simulator.** `telemetry.SimSource` is an inverted-pendulum model that reacts to the live gains in real time, so live tuning is visible: raise the angle gains and the cart settles, drop them and it diverges and "falls".
-- **Live AWS IoT Core path.** `api/iot.py` subscribes to the robot's telemetry topic and publishes gain commands back, mirroring the CC3200 firmware. `paho-mqtt` is an optional dependency, loaded lazily only when `--source aws` is selected.
+- **AWS IoT Core adapter.** `api/iot.py` subscribes to a telemetry topic and publishes gain commands to a command topic over MQTT/TLS. `paho-mqtt` is an optional dependency, loaded lazily only when `--source aws` is selected.
 - **Two front-ends, one backend.** A **buildless** vanilla-JS dashboard (`web/`, Chart.js via CDN) that runs straight from the Python server with no toolchain, and an equivalent **React + TypeScript** app (`web-react/`, Vite) that proxies `/api` to the same backend.
 - **Input validation.** PID-gain updates are validated server-side: only known keys, finite numbers, and a `[0, 1000]` range are accepted; anything else returns `400` with an error message.
-- **Infrastructure-as-Code.** Two equivalent serverless definitions (AWS SAM `deploy/template.yaml` and Serverless Framework `deploy/serverless.yml`) provision a Lambda + DynamoDB table + an IoT TopicRule.
+- **Infrastructure-as-Code.** Two serverless definitions provision a Lambda and a DynamoDB table: AWS SAM `deploy/template.yaml`, which also adds an IoT TopicRule, and Serverless Framework `deploy/serverless.yml`.
 - **Integration test suite.** `api/tests/test_api.py` boots the real server on an ephemeral port and exercises the HTTP surface end to end, using only the standard library.
 
 ---
@@ -57,9 +57,9 @@ The shared `RobotState` object (in `api/telemetry.py`) is the hub. A **source** 
 
 ```
    +-------------+   MQTT/TLS    +--------------------+   SSE + REST   +----------------+
-   |  BalanceBot |  -----------> |  Python API        |  ------------> |  Web dashboard |
-   |  (CC3200,   |   AWS IoT     |  (stdlib only)     |  /api/stream   |  web/  or      |
-   |   Wi-Fi)    |  <----------- |  server.py         |  /api/pid      |  web-react/    |
+   |  AWS IoT    |  -----------> |  Python API        |  ------------> |  Web dashboard |
+   |  Core       |   telemetry   |  (stdlib only)     |  /api/stream   |  web/  or      |
+   |  (topics)   |  <----------- |  server.py         |  /api/pid      |  web-react/    |
    +-------------+   PID cmds    +--------------------+                +----------------+
                                           ^
                                           |  default: no hardware
@@ -74,7 +74,7 @@ Data flow in the default (simulator) configuration:
 2. A browser opens the dashboard and subscribes to `GET /api/stream`. The handler loops, reading the latest sample from `RobotState` every 100 ms and emitting it as an SSE `data:` frame.
 3. The user edits a gain and submits. The front-end sends `POST /api/pid`; the handler validates the payload, merges it into `RobotState`, and (if the source supports it) publishes the new gains downstream. The simulator picks up the new gains on its next tick, closing the loop.
 
-In live mode, `AwsIotSource` replaces `SimSource`: incoming MQTT messages on `balancebot/telemetry` become `Telemetry` samples, and `POST /api/pid` is additionally published to `balancebot/cmd/pid` for the real robot to adopt.
+In AWS mode, `AwsIotSource` replaces `SimSource`: incoming MQTT messages on `balancebot/telemetry` become `Telemetry` samples, and `POST /api/pid` is additionally published to `balancebot/cmd/pid`.
 
 ---
 
@@ -109,7 +109,7 @@ companion-app/
     dist/                 build output (vite build)
   deploy/                 Infrastructure-as-Code (serverless)
     template.yaml         AWS SAM template (Lambda + DynamoDB SimpleTable + IoT rule)
-    serverless.yml        Serverless Framework equivalent
+    serverless.yml        Serverless Framework version (Lambda + DynamoDB)
     lambda_handler.py     Lambda handler backing both IaC definitions
   docs/
     screenshots/Website_onphone/   demo screenshots
@@ -150,12 +150,12 @@ Returned by `/api/telemetry`, the elements of `/api/history`, and each SSE frame
 ```
 
 - `pitch_deg` — body tilt; the balance loop drives this toward 0. The simulator flags `upright: false` once `abs(pitch_deg)` exceeds 30 degrees.
-- `pid_output` — motor command after the cascaded loop, clamped to `[-100, 100]`.
+- `pid_output` — motor command from the balance loop; the simulator clamps it to `[-100, 100]`.
 - `source` — `"sim"` or `"aws-iot"`.
 
 ### PID gains
 
-The six gains, with the firmware-mirroring defaults from `DEFAULT_GAINS`:
+The six gains and their defaults from `DEFAULT_GAINS`:
 
 | Key          | Loop          | Default |
 |--------------|---------------|---------|
@@ -210,12 +210,12 @@ curl -N http://127.0.0.1:8000/api/stream
 #
 ```
 
-### MQTT topics (live mode)
+### MQTT topics (AWS mode)
 
 When `--source aws` is active, `api/iot.py` uses:
 
-- `balancebot/telemetry` — subscribed; inbound robot telemetry (JSON, same field names as the telemetry sample above).
-- `balancebot/cmd/pid` — published with QoS 1 on every accepted `POST /api/pid`; outbound gain commands for the robot to adopt.
+- `balancebot/telemetry` — subscribed; inbound telemetry (JSON, same field names as the telemetry sample above).
+- `balancebot/cmd/pid` — published with QoS 1 on every accepted `POST /api/pid`; outbound gain commands.
 
 ---
 
@@ -242,7 +242,7 @@ python -m api.server --host 0.0.0.0 --port 8000
 
 Then open `http://<this-machine-ip>:8000` from the phone.
 
-### 2. Live mode (real robot, via AWS IoT Core)
+### 2. AWS IoT mode
 
 ```bash
 pip install paho-mqtt
@@ -295,7 +295,7 @@ npm run preview      # serve the production build locally
 
 Other tunables live in code:
 
-- `DEFAULT_GAINS` (`api/telemetry.py`) — starting PID gains, mirroring the firmware.
+- `DEFAULT_GAINS` (`api/telemetry.py`) — starting PID gains.
 - `RobotState(history=240)` — number of telemetry samples retained for `/api/history`.
 - `SimSource(rate_hz=20.0)` — simulator tick rate.
 - `TELEMETRY_TOPIC` / `COMMAND_TOPIC` (`api/iot.py`) — MQTT topic names.
@@ -320,7 +320,7 @@ The Lambda handler (`deploy/lambda_handler.py`) is deliberately importable witho
 
 ## Deployment
 
-Two equivalent Infrastructure-as-Code definitions live in `deploy/`. Both target the same architecture: an HTTP API on Lambda for the PID gains, a DynamoDB table for persistence, and an AWS IoT TopicRule that forwards every robot telemetry message into the same Lambda. `lambda_handler.handler` backs both.
+Two Infrastructure-as-Code definitions live in `deploy/`. Both provision an HTTP API on Lambda for the PID gains and a DynamoDB table for persistence. The SAM template also adds an AWS IoT TopicRule that forwards every message on `balancebot/telemetry` into the same Lambda. `lambda_handler.handler` backs both.
 
 ### Option A: AWS SAM (`deploy/template.yaml`)
 
@@ -362,41 +362,42 @@ Note: the handler stores gains as strings; a code comment flags that production 
 ## Troubleshooting
 
 - **`ModuleNotFoundError: No module named 'api'`** — the server is run as a package (`python -m api.server`) and the tests import `api.*`. Run both from inside the `companion-app/` directory so `api/` is on the path.
-- **`--source aws requires: --endpoint, --ca, ...`** — live mode needs all four of `--endpoint`, `--ca`, `--cert`, `--key`. The server names whichever are missing and exits.
+- **`--source aws requires: --endpoint, --ca, ...`** — AWS mode needs all four of `--endpoint`, `--ca`, `--cert`, `--key`. The server names whichever are missing and exits.
 - **`paho-mqtt is not installed`** — `--source aws` needs the optional MQTT client. Run `pip install paho-mqtt`, or drop `--source aws` to fall back to the simulator.
 - **Dashboard shows "disconnected" / no live data** — the SSE stream (`/api/stream`) was interrupted. The browser `EventSource` auto-reconnects; if it persists, confirm the server is running and reachable, and that nothing (proxy, firewall) is buffering `text/event-stream`.
 - **Phone cannot reach the dashboard** — by default the server binds to `127.0.0.1` (localhost only). Start it with `--host 0.0.0.0`, ensure the phone is on the same network, and open `http://<laptop-ip>:8000`. A host firewall may also need to allow inbound TCP on the port.
 - **React app gets 404s on `/api/*`** — the Python backend must be running on `127.0.0.1:8000` for Vite's proxy to forward to it. Start `python -m api.server` before `npm run dev`.
 - **`POST /api/pid` returns 400** — the payload failed validation. Send a JSON object whose keys are among the six known gains, with finite numeric values in `[0, 1000]`.
-- **Gains apply on the dashboard but the real robot does not react** — in live mode the publish to `balancebot/cmd/pid` is best-effort: a publish failure is swallowed so the dashboard still reflects the change locally. Check the MQTT connection, credentials, and that the robot subscribes to the command topic.
+- **Gains apply on the dashboard but nothing arrives on `balancebot/cmd/pid`** — in AWS mode the publish is best-effort: a publish failure is swallowed so the dashboard still reflects the change locally. Check the MQTT connection and credentials.
 
 ---
 
 ## Tech stack
 
 - **Backend:** Python 3 standard library only (`http.server`, `json`, `argparse`, `threading`, `dataclasses`, `urllib`); `unittest` for tests.
-- **Live cloud path:** AWS IoT Core (MQTT over TLS) via `paho-mqtt` (optional dependency).
+- **AWS IoT adapter:** AWS IoT Core (MQTT over TLS) via `paho-mqtt` (optional dependency).
 - **Front-end (buildless):** HTML + CSS + vanilla JavaScript, Chart.js 4 loaded from CDN, `EventSource` for SSE.
 - **Front-end (React):** React 18 + TypeScript 5, built with Vite 5 (`@vitejs/plugin-react`).
-- **Deployment:** AWS SAM and Serverless Framework, targeting AWS Lambda (Python 3.12), DynamoDB, and an AWS IoT TopicRule.
+- **Deployment:** AWS SAM and Serverless Framework, targeting AWS Lambda (Python 3.12) and DynamoDB; the SAM template adds an AWS IoT TopicRule.
 
 ---
 
 ## 中文简介
 
-本目录是自平衡小车的**配套全栈应用**：把小车的实时遥测推送到网页仪表盘，并能在网页上
-在线调 PID 参数，走的是 CC3200 固件已有的 **AWS IoT** 链路。内置仿真器，**无需硬件、
+本目录是自平衡小车的**配套全栈应用**：网页仪表盘实时显示遥测，并能在网页上在线调 PID
+参数。遥测来自内置仿真器，或经可选的适配器来自 **AWS IoT Core** 的 MQTT 主题；CC3200
+固件则通过 HTTPS/TLS 向 AWS IoT Thing Shadow 发送告警。借助仿真器，**无需硬件、
 无需云凭证**即可运行、演示与测试。
 
-整套系统分三层：硬件（电机、IMU、单片机）-> 固件（STM32 / CC3200，闭合级联 PID 控制
-回路）-> 软件（本目录），本目录即最上层的软件 / 网页 / 云端层。
+整套系统分三层：硬件（电机、IMU、单片机）-> 固件（STM32 / CC3200，闭合平衡控制回路；
+STM32 版的级联控制律来自厂商 XTARK）-> 软件（本目录），本目录即最上层的软件 / 网页 / 云端层。
 
 - `api/` 纯标准库 Python 服务（REST + SSE，零依赖）：`server.py` 提供接口与静态页面，
-  `telemetry.py` 是遥测模型、共享状态与仿真器 `SimSource`，`iot.py` 是 AWS IoT 实时链路。
+  `telemetry.py` 是遥测模型、共享状态与仿真器 `SimSource`，`iot.py` 是可选的 AWS IoT（MQTT）适配器。
 - `web/` 免构建网页仪表盘（HTML/CSS/JS，Chart.js 走 CDN）；`web-react/` 同款 React +
   TypeScript 版本（Vite）。
 - `deploy/` AWS SAM（`template.yaml`）与 Serverless Framework（`serverless.yml`）两套
-  无服务器部署配置，对应 Lambda + DynamoDB + IoT TopicRule，由 `lambda_handler.py` 承载。
+  无服务器部署配置，都包含 Lambda + DynamoDB（SAM 版另有 IoT TopicRule），由 `lambda_handler.py` 承载。
 
 运行：`cd companion-app && python -m api.server`，浏览器打开 <http://127.0.0.1:8000>。
 测试：`python -m unittest api.tests.test_api -v`。

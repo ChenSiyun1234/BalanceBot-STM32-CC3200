@@ -1,6 +1,6 @@
 # BalanceBot Remote (Android)
 
-A native Android (Kotlin) Bluetooth remote that drives the self-balancing two-wheel cart over a classic-Bluetooth HC-05 link, sending one-character drive commands with a press-and-hold D-pad.
+A native Android (Kotlin) Bluetooth remote that drives the self-balancing two-wheel cart over a classic-Bluetooth HC-05 link, sending single-letter drive commands with a press-and-hold D-pad.
 
 ## Overview
 
@@ -9,14 +9,14 @@ This sub-project is the mobile-software layer of the larger self-balancing robot
 ```
 hardware            firmware                         this app
 +-----------+       +-----------------------+        +---------------------------+
-| motors,   |  <--  | bare-metal STM32:     |  <--   | Android phone:            |
+| motors,   |  <--  | STM32 firmware:       |  <--   | Android phone:            |
 | encoders, | UART  | balance loop + UART   | SPP    | BalanceBot Remote (Kotlin)|
 | HC-05,    |       | command parser on the | RFCOMM | classic-Bluetooth client  |
 | IMU/MPU   |       | HC-05 serial line     |        |                           |
 +-----------+       +-----------------------+        +---------------------------+
 ```
 
-The firmware keeps the cart upright and listens for short ASCII commands on the HC-05 UART. This app is the remote: it pairs to the HC-05 as a classic-Bluetooth Serial Port Profile (SPP) device, opens an RFCOMM socket, and writes drive commands as the user holds direction buttons. It exists to round out the project with the complete hardware to firmware to mobile-software path, all written in Kotlin against the Android Bluetooth APIs.
+The firmware keeps the cart upright and listens for short ASCII commands on the HC-05 UART. This app is the remote: it pairs to the HC-05 as a classic-Bluetooth Serial Port Profile (SPP) device, opens an RFCOMM socket, and writes drive commands as the user holds direction buttons. It is written in Kotlin against the Android Bluetooth APIs.
 
 The app is intentionally small and dependency-light: a single `Activity`, a single layout, and the platform Bluetooth stack. There is no third-party Bluetooth library, no ViewModel framework, and no networking dependency.
 
@@ -35,7 +35,7 @@ Hold a direction to drive, release to stop.
 - Runtime-permission handling across Android versions. On Android 12+ (API 31, `Build.VERSION_CODES.S`) it requests `BLUETOOTH_CONNECT`; on API 30 and below it falls back to the legacy `BLUETOOTH` and `BLUETOOTH_ADMIN` permissions.
 - Off-UI-thread I/O. The blocking `connect()` call and every socket write run on a background `Thread`; status updates are marshalled back with `runOnUiThread`, so the UI never blocks on Bluetooth.
 - Safety stops. A STOP command is sent on button release, on touch cancel, and again when the `Activity` is destroyed (`onDestroy`), so the cart does not keep rolling if the app is backgrounded or the touch is interrupted.
-- Speed control. A `SeekBar` (range 0 to 9, default 5) sets a speed digit that is appended to every directional command.
+- Speed digit. A `SeekBar` (range 0 to 9, default 5) sets a digit that is appended to every directional command.
 - Live status line. A `TextView` reflects the current state: not connected, connecting, connected, permission needed, or the specific failure message.
 
 ## Architecture
@@ -106,7 +106,7 @@ Note: `build/` output and `local.properties` are intentionally not part of the d
 
 ## Command-protocol reference
 
-The app speaks the firmware's HC-05 command set: short ASCII strings written directly to the RFCOMM `OutputStream`. There is no acknowledgement or response read back; the channel is one-way write from app to cart.
+The app sends the firmware's drive commands over the HC-05 link: short ASCII strings written directly to the RFCOMM `OutputStream`. There is no acknowledgement or response read back; the channel is one-way write from app to cart.
 
 ### Encoding rule
 
@@ -205,17 +205,17 @@ There are no build flavors, no environment files, and no runtime flags beyond th
 
 ## Testing
 
-This project ships no automated unit or instrumentation test suite; verification is done on hardware. To confirm the build and behavior:
+Verification is done on hardware. To confirm the build and behavior:
 
 1. Build verification: run `./gradlew assembleDebug` and confirm `app/build/outputs/apk/debug/app-debug.apk` is produced without errors.
 2. Manual end-to-end check (requires the cart powered on and its HC-05 paired):
    - Open the app and confirm the status reads "Not connected".
    - Tap Connect to HC-05 and confirm the status progresses to "Connecting to HC-05..." then "Connected to HC-05".
    - Hold the forward arrow and confirm the cart drives forward; release and confirm it stops.
-   - Repeat for back, left, and right; confirm the speed slider changes how fast it drives.
+   - Repeat for back.
    - Background or close the app while driving and confirm the cart stops (the `onDestroy` safety STOP).
 
-Status: verified on the real self-balancing cart over the HC-05 link (see the Demo section).
+The Demo GIF shows the app driving the real self-balancing cart over the HC-05 link.
 
 ## Install and pairing specifics
 
