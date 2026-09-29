@@ -1,6 +1,8 @@
 # Self-Balancing Cart — CC3200 Firmware
 
-Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip Wi-Fi). Keeps itself upright with a cascaded PID controller fed by a **Kalman-filtered IMU**, shows live telemetry on a colour OLED, and **emails an alert over Wi-Fi** (AWS IoT) when it powers on or falls over.
+> This firmware now has its own repository with host unit tests and CI: [cc3200-balancing-cart](https://github.com/ChenSiyun1234/cc3200-balancing-cart). This folder keeps the original EEC 172 version.
+
+Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip Wi-Fi). Keeps itself upright with a cascaded PID controller fed by a **Kalman-filtered IMU**, shows live telemetry on a colour OLED, and **posts an alert to AWS IoT over Wi-Fi** at power-on and when it falls over.
 
 | | |
 |---|---|
@@ -26,9 +28,9 @@ Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip
 - **Motor drive** — TB6612FNG dual H-bridge at ~19.6 kHz PWM (inaudible).
 - **Colour telemetry** — SSD1351 128×128 OLED (SPI) shows state, tilt, motor output, and live PID gains.
 - **Live serial tuning** — adjust every PID gain over the UART0 console at runtime; no recompile.
-- **Wi-Fi email alerts** *(optional)* — at boot and on a fall, posts to an **AWS IoT Thing Shadow over TLS**; an IoT rule forwards to **SNS**, which emails you.
+- **Wi-Fi alerts** *(optional)* — posts an "online" message at power-on and one alert per fall to an **AWS IoT Thing Shadow over TLS**.
 
-> Ultrasonic ranging, buzzer, and HC-05 remote are scaffolded but disabled in this build. Encoders + the velocity loop are present and enabled in [`src/hw_config.h`](src/hw_config.h).
+> Ultrasonic ranging, buzzer, and HC-05 remote are scaffolded but disabled in this build. The encoder and velocity-loop code is included; both are switched off in [`src/hw_config.h`](src/hw_config.h) for this build.
 
 ---
 
@@ -73,11 +75,11 @@ The CC3200 SDK 1.5.0 is a third-party dependency and is not committed here.
 | `ENABLE_OLED` | `1` | SSD1351 SPI display |
 | `MOTOR_SHARED_PWM` | `1` | one PWM pin drives both wheels |
 | `ACCEL_SOURCE_IS_BMA222` | `0` | `0` = MPU-6050 accel, `1` = on-board BMA222 |
-| `ENABLE_WIFI_EMAIL` | `1` | startup / fall email via AWS IoT |
+| `ENABLE_WIFI_EMAIL` | `1` | startup / fall alert posted to AWS IoT |
 | `USE_VELOCITY_LOOP` / `USE_TURN_LOOP` | `0` | encoder velocity PI / yaw turn loop |
 | `BALANCE_KP / KI / KD` | `13 / 0 / 0.7` | angle-loop gains (±255 PWM scale) |
 
-**Wi-Fi email** also needs the SimpleLink build settings (include paths, `simplelink.a`, no `NON_NETWORK`), a 2.4 GHz network (SSID in the SDK `common.h`), the AWS root-CA/client/private-key certs flashed to `/cert/`, and a roughly-correct date for TLS. Set `ENABLE_WIFI_EMAIL = 0` for a lean, network-free build.
+**Wi-Fi alerts** also need the SimpleLink build settings (include paths, `simplelink.a`, no `NON_NETWORK`), a 2.4 GHz network (SSID in the SDK `common.h`), the AWS root-CA/client/private-key certs flashed to `/cert/`, and a roughly-correct date for TLS. Set `ENABLE_WIFI_EMAIL = 0` for a lean, network-free build.
 
 ---
 
