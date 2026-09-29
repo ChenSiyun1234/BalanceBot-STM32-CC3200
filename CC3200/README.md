@@ -2,7 +2,7 @@
 
 > This firmware now has its own repository with host unit tests and CI: [cc3200-balancing-cart](https://github.com/ChenSiyun1234/cc3200-balancing-cart). This folder keeps the original EEC 172 version.
 
-Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip Wi-Fi). Keeps itself upright with a cascaded PID controller fed by a **Kalman-filtered IMU**, shows live telemetry on a colour OLED, and **posts an alert to AWS IoT over Wi-Fi** at power-on and when it falls over.
+Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip Wi-Fi). Keeps itself upright with a PD balance loop fed by a **Kalman-filtered IMU**, shows live telemetry on a colour OLED, and **posts an alert to AWS IoT over Wi-Fi** at power-on and when it falls over.
 
 | | |
 |---|---|

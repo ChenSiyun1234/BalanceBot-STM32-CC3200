@@ -32,7 +32,7 @@ A two-wheel cart keeps itself upright with a **cascaded three-loop PID controlle
 - **Sensor fusion** — MPU-6050 gyro/accel fused by the on-chip **DMP** (quaternion → pitch/yaw) over a software-I²C bus, driven by a data-ready interrupt.
 - **Embedded systems debugging** — diagnosed and fixed a velocity-loop **positive-feedback runaway** (live sign-toggle), a motor **dead-zone limit cycle**, an int16 **PWM-mix overflow**, and added **read-back-verified** flash writes.
 - **Hardware integration** — TB6612 H-bridge PWM, quadrature encoders, HC-05 Bluetooth (SPP), HC-SR04 ultrasonic (DWT-cycle-counter timing), SSD1306 OLED, and a 5 V-tolerant pin remap so 5 V encoder signals reach a 3.3 V MCU safely.
-- **IoT / networking** *(CC3200 build)* — Wi-Fi + **AWS IoT over TLS** (Thing Shadow → IoT Rule → SNS) emails an alert on power-up and on a fall.
+- **IoT / networking** *(CC3200 build)* — posts an alert to an **AWS IoT Thing Shadow over TLS** on power-up and on a fall.
 - **Full-stack companion software** — a **React/TypeScript** web dashboard + a **Python REST/SSE API**, a native **Android (Kotlin)** Bluetooth remote, and a Python desktop app; the cloud path deploys as Infrastructure-as-Code (**AWS SAM / Serverless**) and the API is covered by automated tests.
 
 ---
@@ -42,7 +42,7 @@ A two-wheel cart keeps itself upright with a **cascaded three-loop PID controlle
 | Build | MCU | Highlights | Status |
 |-------|-----|-----------|--------|
 | [**STM32**](STM32/README.md) — *flagship* | STM32F103C8T6 "Blue Pill" (Cortex-M3, 72 MHz) | Bluetooth remote, ultrasonic scan-and-turn avoidance, **live PID tuning**, flash-persisted config, dual OLED views | Balancing, remote & tuning verified on hardware |
-| [**CC3200**](CC3200/README.md) | TI CC3200 (Cortex-M4 + Wi-Fi) | Kalman sensor fusion, colour OLED, **Wi-Fi / AWS-IoT** email alerts | Complete |
+| [**CC3200**](CC3200/README.md) | TI CC3200 (Cortex-M4 + Wi-Fi) | Kalman sensor fusion, colour OLED, **Wi-Fi / AWS-IoT** alerts | Complete |
 
 Both run the same control law on the same TARKBOT R3T chassis; they differ in MCU, sensor-fusion method (DMP vs. Kalman), and feature focus (motion/UX vs. networking).
 
@@ -58,7 +58,7 @@ Bluetooth remote · ultrasonic scan-and-turn avoidance · live PID tuning · fla
 
 ### CC3200 build
 
-Kalman sensor fusion · colour OLED · **Wi-Fi / AWS-IoT** email alerts on power-up and fall. **[Full details & build →](CC3200/README.md)**
+Kalman sensor fusion · colour OLED · **Wi-Fi / AWS-IoT** alerts on power-up and fall. **[Full details & build →](CC3200/README.md)**
 
 | Self-balancing | OLED telemetry |
 |:---:|:---:|
