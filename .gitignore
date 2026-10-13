@@ -15,6 +15,7 @@ Release/
 .launches/
 .ptcache/
 .metadata/
+.jxbrowser-data/
 RemoteSystemsTempFiles/
 
 # ─── Keil MDK (STM32 version, future) ────────────────────────
