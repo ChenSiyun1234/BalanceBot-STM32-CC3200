@@ -2,17 +2,17 @@
 
 A two-wheel robot that balances on its own and drives over Bluetooth.
 
-| Balancing and driving | Status screen |
+| Balancing and taking a push | Status screen |
 |:---:|:---:|
-| <img src="STM32/images/stm32_balancing.gif" width="240" alt="BalanceBot balancing and driving"> | <img src="STM32/images/stm32_oled.jpg" width="300" alt="BalanceBot OLED status screen"> |
+| <img src="STM32/images/stm32_balancing.gif" width="240" alt="BalanceBot balancing while a finger pushes it"> | <img src="STM32/images/stm32_oled.jpg" width="300" alt="BalanceBot OLED status screen"> |
 
-I built this on a TARKBOT R3T chassis. The balance controller is the one the chassis maker, XTARK, ships with it: an angle loop, a speed loop and a turn loop that run 100 times a second off the IMU's data-ready interrupt. My job was to move that controller onto an STM32F103 "Blue Pill" with hand-wired modules, write the drivers around it, and get the cart to stand up and stay up.
+I built this on a TARKBOT R3T chassis. The balance controller is XTARK's, the company that makes the chassis: an angle loop, a speed loop and a turn loop that run 100 times a second off the IMU's data-ready interrupt. My part was to move that controller onto an STM32F103 "Blue Pill" with hand-wired modules, write new motor and Bluetooth drivers for it, and get the cart to stand up and stay up.
 
 ## What I did
 
 I wrote a new motor driver for the TB6612 board, because the vendor's code drove a different H-bridge. It runs both motors from two 20 kHz PWM channels on one timer.
 
-I replaced the vendor's framed Bluetooth protocol with single-letter commands, so I could drive and tune the cart from a phone. Bytes come in through an interrupt into a small ring buffer. Gains can be changed while the cart is running and saved to the last page of internal flash. The valid marker is written last, and if the read-back doesn't match, the OLED says the save failed.
+The vendor's firmware could already tune gains over Bluetooth and save settings to flash, through a framed protocol for its own phone app. I replaced that protocol with single-character commands that any Bluetooth serial app can send. Bytes come in through an interrupt into a small ring buffer. I also rewrote the flash save. The gains go to the last page of internal flash with the valid marker written last, and if the read-back doesn't match, the OLED says the save failed.
 
 I also added a six-channel telemetry stream on the UART, every 20 ms. That's how I found the sign error below.
 
@@ -42,17 +42,17 @@ I also wrote three small apps around the robot. There's an Android remote in Kot
 
 ## Build it
 
-- **STM32:** open `STM32/Project/xproject.uvprojx` in Keil µVision 5, build, and flash over SWD. Wiring is in [STM32/WIRING.en.md](STM32/WIRING.en.md) and tuning steps are in [STM32/TUNING.en.md](STM32/TUNING.en.md).
-- **CC3200:** see [CC3200/README.md](CC3200/README.md) or the standalone repository.
-- **Apps:** each one has its own README: [Android](android-app/README.md), [web dashboard and API](companion-app/README.md), [desktop](desktop-controller/README.md).
+- STM32: open `STM32/Project/xproject.uvprojx` in Keil µVision 5, build, and flash over SWD. Wiring is in [STM32/WIRING.en.md](STM32/WIRING.en.md) and tuning steps are in [STM32/TUNING.en.md](STM32/TUNING.en.md).
+- CC3200: see [CC3200/README.md](CC3200/README.md) or the standalone repository.
+- Apps: each one has its own README: [Android](android-app/README.md), [web dashboard and API](companion-app/README.md), [desktop](desktop-controller/README.md).
 
 The parts list is in [hardware/BOM.en.md](hardware/BOM.en.md). The control loop diagram, the hardware table and the repository layout are in [docs/details.md](docs/details.md).
 
 ## Credits
 
-- **XTARK**, maker of the TARKBOT R3T: the balance control law in `STM32/Robot/ax_balance.c` is theirs and is used as is, along with the starting gains, the FreeRTOS task setup and the files marked "adapted from XTARK OpenCTR".
-- **EEC 172, UC Davis:** the CC3200 Wi-Fi and TLS code (`CC3200/src/network_utils.c/.h`) comes from the course's `aws-rest-api-ssl-demo` lab project, which builds on TI's SimpleLink SSL example. The OLED graphics are Adafruit GFX as ported for the course.
-- **Kristian Lauszus (TKJ Electronics):** the Kalman filter math in `CC3200/src/kalman.c` follows his KalmanFilter library (GPL-2.0).
+- XTARK, maker of the TARKBOT R3T: the balance control law in `STM32/Robot/ax_balance.c` is theirs and is used as is, along with the starting gains, the FreeRTOS task setup and the files marked "adapted from XTARK OpenCTR".
+- EEC 172, UC Davis: the CC3200 Wi-Fi and TLS code (`CC3200/src/network_utils.c/.h`) comes from the course's `aws-rest-api-ssl-demo` lab project, which builds on TI's SimpleLink SSL example. The OLED graphics are Adafruit GFX as ported for the course.
+- Kristian Lauszus (TKJ Electronics): the Kalman filter math in `CC3200/src/kalman.c` follows his KalmanFilter library (GPL-2.0).
 - FreeRTOS, ST's StdPeriph library, InvenSense's motion driver and TI's CC3200 SDK.
 
 My own code is under the MIT license in `LICENSE`. XTARK's files and the other third-party code keep their owners' terms.
