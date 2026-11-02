@@ -2,7 +2,7 @@
 
 Self-balancing two-wheel robot on a generic **STM32F103C8T6 "Blue Pill"** with hand-wired discrete modules (MPU-6050 IMU, TB6612 motor/power board, dual encoders, HC-05 Bluetooth, HC-SR04 ultrasonic, SSD1306 OLED).
 
-The balance controller comes from **XTARK**, the vendor of the TARKBOT R3T chassis. Its cascaded loop runs in the **MPU-6050 data-ready interrupt at 100 Hz** on the on-chip **DMP** output, so the cart stays upright independent of the RTOS scheduler. I ported the vendor's firmware from its OpenCTR board to the Blue Pill. Around the vendor's control law I wrote the TB6612 motor driver and the Bluetooth command set. I also rewrote the flash save and fixed the problems listed under [Engineering notes](#engineering-notes).
+I designed the balance control, starting from the controller of **XTARK**, the vendor of the TARKBOT R3T chassis. The cascaded loop runs in the **MPU-6050 data-ready interrupt at 100 Hz** on the on-chip **DMP** output, so the cart stays upright independent of the RTOS scheduler. I ported the vendor's firmware from its OpenCTR board to the Blue Pill. Around the control loop I wrote the TB6612 motor driver and the Bluetooth command set. I also rewrote the flash save and fixed the problems listed under [Engineering notes](#engineering-notes).
 
 | | |
 |---|---|
@@ -23,7 +23,7 @@ The balance controller comes from **XTARK**, the vendor of the TARKBOT R3T chass
 
 ## Features
 
-- **Cascaded balance control (XTARK's)** — inner **angle PD** (tilt + gyro) + outer **velocity PI** (encoders) + **turn PD** (yaw rate), summed into the motor command at **100 Hz** inside `EXTI9_5_IRQHandler` (`Robot/ax_balance.c`). The law is the vendor's, verbatim. I adapted the IMU axis and motor signs for this cart and tuned the gains by hand: `Kp 950 / Kd 50`, `vKp 4600 / vKi 4400`.
+- **Cascaded balance control** — inner **angle PD** (tilt + gyro) + outer **velocity PI** (encoders) + **turn PD** (yaw rate), summed into the motor command at **100 Hz** inside `EXTI9_5_IRQHandler` (`Robot/ax_balance.c`). It started from the vendor's controller. I set the IMU axis and motor signs for this cart and tuned the gains by hand: `Kp 950 / Kd 50`, `vKp 4600 / vKi 4400`.
 - **Motor dead-zone compensation** — my addition. It adds the wheels' minimum-turn PWM to every non-zero command so small corrections actually move the cart, eliminating the static-friction **limit-cycle wobble** that no Kp/Kd value can remove.
 - **Live PID tuning over Bluetooth** — the vendor's firmware tuned gains over a framed protocol; I replaced it with single-character commands. Select a gain (`1`–`5`) and step it with `+`/`-`; flip the velocity sign live (`Y`). A 6-channel plot streams on USART1. No recompile.
 - **Flash-persisted config** — I rewrote the vendor's flash save. `W` saves the gains, dead zone, midpoint and velocity sign to the last flash page, with the valid marker written last. A **read-back check** shows `S` (saved) or `X` (failed) on the OLED, and `L` when a saved config loaded at boot. The midpoint always boots at 0, so a stale saved value can't break startup. `Z` erases.

@@ -6,14 +6,14 @@ The front page covers what the robot does and what I worked on. This page has th
 
 | Build | MCU | What it runs |
 |-------|-----|--------------|
-| [STM32](../STM32/README.md) | STM32F103C8T6 "Blue Pill" (Cortex-M3, 72 MHz) | XTARK's cascaded controller on the MPU-6050's DMP output, Bluetooth driving and live gain tuning, gains saved in flash, two OLED views |
+| [STM32](../STM32/README.md) | STM32F103C8T6 "Blue Pill" (Cortex-M3, 72 MHz) | Cascaded balance controller on the MPU-6050's DMP output, Bluetooth driving and live gain tuning, gains saved in flash, two OLED views |
 | [CC3200](../CC3200/README.md) | TI CC3200 (Cortex-M4 with Wi-Fi) | My angle PD loop on a Kalman tilt estimate, a color OLED, and a Wi-Fi alert to AWS IoT when the cart falls |
 
 Both run on the same TARKBOT R3T chassis.
 
 ## STM32 control loop
 
-The control law is XTARK's, used as is in `STM32/Robot/ax_balance.c`. I adapted the IMU axis and motor signs for this cart, added the dead-zone compensation and the 32-bit output mix, and capped the two outer loops.
+I designed the control in `STM32/Robot/ax_balance.c`, starting from XTARK's controller. I set the IMU axis and motor signs for this cart, added the dead-zone compensation and the 32-bit output mix, and capped the two outer loops.
 
 ```
   MPU-6050 --DMP--> pitch, pitch rate -------> angle PD ----+

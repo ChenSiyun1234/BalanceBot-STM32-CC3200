@@ -1,8 +1,8 @@
 /* ax_balance.c - self-balancing control (STM32F103C8T6)
  *
- * The control law is the XTARK vendor's (simplified V1.00 ax_balance.c) verbatim:
+ * My control design, starting from the XTARK vendor's simplified V1.00 ax_balance.c:
  * a cascaded angle-PD + velocity-PI + turn-PD loop running at 100 Hz inside the
- * MPU6050 data-ready interrupt (DMP, EXTI line 5). Only two things were adapted:
+ * MPU6050 data-ready interrupt (DMP, EXTI line 5). For this cart in particular:
  *
  *   1. IMU axis: this cart's forward/back tilt is rotation about the Y axis, so
  *      the balance angle/rate use the DMP PITCH outputs angle[1] / gyro[1]

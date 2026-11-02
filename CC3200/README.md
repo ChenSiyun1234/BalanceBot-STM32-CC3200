@@ -101,4 +101,4 @@ The CC3200 SDK 1.5.0 is a third-party dependency and is not committed here.
 
 ---
 
-*Sibling build: the [STM32 version](../STM32/README.md) runs XTARK's cascaded balancing controller, ported to an STM32F103, with Bluetooth commands for driving and live tuning.*
+*Sibling build: the [STM32 version](../STM32/README.md) runs my cascaded balancing controller, started from XTARK's and moved to an STM32F103, with Bluetooth commands for driving and live tuning.*
