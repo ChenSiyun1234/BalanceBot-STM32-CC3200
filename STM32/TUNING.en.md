@@ -46,7 +46,7 @@ What happens on each interrupt:
 3. Read the encoders to compute left/right wheel speeds (m/s; note this cart **reads negative when physically moving forward** — that is the sign the velocity loop expects, see Phase 2), then clear the counters.
 4. Run **all the loops**, mix them into left/right PWM, and drive the motors (detailed below).
 
-> Note: the axis choice (using PITCH `[1]`) is one of the few changes this cart makes relative to the vendor's OpenCTR original (which used `[0]`), because this cart's fore/aft lean is about the Y axis.
+> Note: the axis choice (using PITCH `[1]`) is there because this cart's fore/aft lean is about the Y axis.
 
 ### 1.3 What each loop is
 

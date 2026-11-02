@@ -6,7 +6,7 @@ A two-wheel robot that balances on its own and drives over Bluetooth.
 |:---:|:---:|
 | <img src="STM32/images/stm32_balancing.gif" width="240" alt="BalanceBot balancing while a finger pushes it"> | <img src="STM32/images/stm32_oled.jpg" width="300" alt="BalanceBot OLED status screen"> |
 
-I built this on a TARKBOT R3T chassis. I designed the balance control, starting from the controller of XTARK, the company that makes the chassis: an angle loop, a speed loop and a turn loop that run 100 times a second off the IMU's data-ready interrupt. I also moved it onto an STM32F103 "Blue Pill" with hand-wired modules, wrote new motor and Bluetooth drivers for it, and got the cart to stand up and stay up.
+I built this on a TARKBOT R3T chassis. I designed the balance control: an angle loop, a speed loop and a turn loop that run 100 times a second off the IMU's data-ready interrupt. I also moved it onto an STM32F103 "Blue Pill" with hand-wired modules, wrote new motor and Bluetooth drivers for it, and got the cart to stand up and stay up.
 
 ## What I did
 
@@ -50,7 +50,7 @@ The parts list is in [hardware/BOM.en.md](hardware/BOM.en.md). The control loop 
 
 ## Credits
 
-- XTARK, maker of the TARKBOT R3T: the controller my balance control in `STM32/Robot/ax_balance.c` started from, along with the starting gains, the FreeRTOS task setup and the files marked "adapted from XTARK OpenCTR".
+- XTARK, maker of the TARKBOT R3T: the starting gains, the FreeRTOS task setup and the files marked "adapted from XTARK OpenCTR".
 - EEC 172, UC Davis: the CC3200 Wi-Fi and TLS code (`CC3200/src/network_utils.c/.h`) comes from the course's `aws-rest-api-ssl-demo` lab project, which builds on TI's SimpleLink SSL example. The OLED graphics are Adafruit GFX as ported for the course.
 - Kristian Lauszus (TKJ Electronics): the Kalman filter math in `CC3200/src/kalman.c` follows his KalmanFilter library (GPL-2.0).
 - FreeRTOS, ST's StdPeriph library, InvenSense's motion driver and TI's CC3200 SDK.

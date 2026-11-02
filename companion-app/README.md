@@ -13,7 +13,7 @@ This sub-project is the **software / web / cloud layer** that sits on top of the
    (motors, IMU, MCU)      (STM32 / CC3200)        (companion-app/)
 ```
 
-The firmware running on the cart's microcontroller keeps the cart upright. The STM32 build runs my cascaded PID controller, started from XTARK's (an inner angle PD loop, an outer velocity PI loop, and a turn PD loop); the CC3200 build runs an angle PD loop. This companion app **watches and tunes a balance loop from a browser**: it streams telemetry to a dashboard and sends new PID gains back through a REST API. The telemetry comes from the built-in simulator, or from an MQTT topic on **AWS IoT Core** through an optional adapter. On the robot side, the CC3200 build talks to AWS IoT by POSTing its alerts to a Thing Shadow over HTTPS/TLS.
+The firmware running on the cart's microcontroller keeps the cart upright. The STM32 build runs my cascaded PID controller (an inner angle PD loop, an outer velocity PI loop, and a turn PD loop); the CC3200 build runs an angle PD loop. This companion app **watches and tunes a balance loop from a browser**: it streams telemetry to a dashboard and sends new PID gains back through a REST API. The telemetry comes from the built-in simulator, or from an MQTT topic on **AWS IoT Core** through an optional adapter. On the robot side, the CC3200 build talks to AWS IoT by POSTing its alerts to a Thing Shadow over HTTPS/TLS.
 
 The defining design constraint is that the **entire app runs with zero hardware and zero cloud credentials**. A built-in inverted-pendulum simulator (`telemetry.SimSource`) stands in for the real robot, so the dashboard, API, and tests can be developed, demoed, and run offline. Switching to AWS IoT takes `--source aws` plus the endpoint and certificate flags.
 
@@ -390,7 +390,7 @@ Note: the handler stores gains as strings; a code comment flags that production 
 无需云凭证**即可运行、演示与测试。
 
 整套系统分三层：硬件（电机、IMU、单片机）-> 固件（STM32 / CC3200，闭合平衡控制回路；
-STM32 版的级联控制律来自厂商 XTARK）-> 软件（本目录），本目录即最上层的软件 / 网页 / 云端层。
+STM32 版是我设计的级联控制律）-> 软件（本目录），本目录即最上层的软件 / 网页 / 云端层。
 
 - `api/` 纯标准库 Python 服务（REST + SSE，零依赖）：`server.py` 提供接口与静态页面，
   `telemetry.py` 是遥测模型、共享状态与仿真器 `SimSource`，`iot.py` 是可选的 AWS IoT（MQTT）适配器。

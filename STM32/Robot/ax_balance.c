@@ -1,6 +1,6 @@
 /* ax_balance.c - self-balancing control (STM32F103C8T6)
  *
- * My control design, starting from the XTARK vendor's simplified V1.00 ax_balance.c:
+ * My control design:
  * a cascaded angle-PD + velocity-PI + turn-PD loop running at 100 Hz inside the
  * MPU6050 data-ready interrupt (DMP, EXTI line 5). For this cart in particular:
  *

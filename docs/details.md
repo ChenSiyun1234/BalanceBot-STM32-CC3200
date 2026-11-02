@@ -13,7 +13,7 @@ Both run on the same TARKBOT R3T chassis.
 
 ## STM32 control loop
 
-I designed the control in `STM32/Robot/ax_balance.c`, starting from XTARK's controller. I set the IMU axis and motor signs for this cart, added the dead-zone compensation and the 32-bit output mix, and capped the two outer loops.
+I designed the control in `STM32/Robot/ax_balance.c`. I set the IMU axis and motor signs for this cart, added the dead-zone compensation and the 32-bit output mix, and capped the two outer loops.
 
 ```
   MPU-6050 --DMP--> pitch, pitch rate -------> angle PD ----+
