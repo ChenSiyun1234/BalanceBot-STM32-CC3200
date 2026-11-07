@@ -39,7 +39,7 @@ uint8_t ax_disp_mode = 0;
 
 uint8_t ax_beep_ring = 0;
 
-uint8_t ax_control_mode = CTL_APP;   /* HC-05 on USART2 -> vendor app protocol */
+uint8_t ax_control_mode = CTL_APP;   /* HC-05 on USART2 -> Bluetooth command protocol */
 
 int16_t ax_robot_vx = 0;
 int16_t ax_robot_vw = 0;

@@ -326,7 +326,7 @@ L4:  vP:<velocityKp>  vI:<velocityKi>
 
 ## 4. Step-by-step tuning
 
-> Overall approach (the vendor DB20 method): start with **I = D = 0**, raise **Kp** until it just starts oscillating, add **D** to kill the oscillation, finally add **I** to remove steady-state error. Judge by: **overshoot / rise time / steady-state error**. Below we follow that approach in this cart's multi-loop order.
+> Overall tuning approach: start with **I = D = 0**, raise **Kp** until it just starts oscillating, add **D** to kill the oscillation, finally add **I** to remove steady-state error. Judge by: **overshoot / rise time / steady-state error**. Below we follow that approach in this cart's multi-loop order.
 
 ### Phase 0: safety prep
 
@@ -339,7 +339,7 @@ L4:  vP:<velocityKp>  vI:<velocityKi>
 
 1. **Verify motor direction first** (cart on stand). Tip the cart forward — **both wheels should turn in the "drive forward / catch the fall" direction**; tip it back and both should reverse. If a wheel turns the wrong way, swap that motor's AIN1/AIN2 (or BIN1/BIN2) wiring, or flip the sign of that `SetSpeed` line in `ax_balance.c`. **Tuning before the direction is right is pure waste.**
 
-2. **Tune Kp → Kd the vendor way**:
+2. **Tune Kp → Kd**:
    - First drop **Kd very low, even to 0** (Bluetooth `2` selects Kd, press `-`), leaving only Kp.
    - Bluetooth `1` selects Kp, step it `+` (step 50) **until the cart starts oscillating back and forth / high-frequency chatter**. That means Kp is near "just stiff enough" — note this value.
    - Bluetooth `2` selects Kd, step it `+` (step 5) **to damp the oscillation out**, until a nudge produces a crisp return with little overshoot. Too much Kd and you get high-frequency jitter and a buzzing motor — back it off a touch.
@@ -538,7 +538,7 @@ Auto-tuning the **PID gains (Kp/Kd/vKp/vKi)** is a different matter entirely. Au
 - It needs reliable experiment reset, safety limits, and failure detection — a lot of engineering, with no guaranteed stable convergence.
 - For a course / prototype cart, the cost/benefit is poor and the risk is high.
 
-**Therefore hardware PID auto-tuning is not recommended for this cart.** The **practical, reliable path is the manual flow of Section 4**: the vendor "Kp→Kd→Ki" method + live Bluetooth tuning + serial-plotter judging + OLED read-out, then save with `W` (or hard-code). Leave the midpoint to the implemented auto-calibration and tune the gains by hand — currently the most dependable combination.
+**Therefore hardware PID auto-tuning is not recommended for this cart.** The **practical, reliable path is the manual flow of Section 4**: the "Kp→Kd→Ki" sequence + live Bluetooth tuning + serial-plotter judging + OLED read-out, then save with `W` (or hard-code). Leave the midpoint to the implemented auto-calibration and tune the gains by hand — currently the most dependable combination.
 
 ---
 

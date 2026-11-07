@@ -2,7 +2,7 @@
 
 Self-balancing two-wheel robot on a generic **STM32F103C8T6 "Blue Pill"** with hand-wired discrete modules (MPU-6050 IMU, TB6612 motor/power board, dual encoders, HC-05 Bluetooth, HC-SR04 ultrasonic, SSD1306 OLED).
 
-I designed the balance control. The cascaded loop runs in the **MPU-6050 data-ready interrupt at 100 Hz** on the on-chip **DMP** output, so the cart stays upright independent of the RTOS scheduler. I ported the vendor's firmware from its OpenCTR board to the Blue Pill. Around the control loop I wrote the TB6612 motor driver and the Bluetooth command set. I also rewrote the flash save and fixed the problems listed under [Engineering notes](#engineering-notes).
+I designed the balance control. The cascaded loop runs in the **MPU-6050 data-ready interrupt at 100 Hz** on the on-chip **DMP** output, so the cart stays upright independent of the RTOS scheduler. The firmware runs on the Blue Pill with the hardware connections listed below. Around the control loop I wrote the TB6612 motor driver and the Bluetooth command set. I also rewrote the flash save and fixed the problems listed under [Engineering notes](#engineering-notes).
 
 | | |
 |---|---|
@@ -25,18 +25,18 @@ I designed the balance control. The cascaded loop runs in the **MPU-6050 data-re
 
 - **Cascaded balance control** — inner **angle PD** (tilt + gyro) + outer **velocity PI** (encoders) + **turn PD** (yaw rate), summed into the motor command at **100 Hz** inside `EXTI9_5_IRQHandler` (`Robot/ax_balance.c`). I set the IMU axis and motor signs for this cart and tuned the gains by hand: `Kp 950 / Kd 50`, `vKp 4600 / vKi 4400`.
 - **Motor dead-zone compensation** — my addition. It adds the wheels' minimum-turn PWM to every non-zero command so small corrections actually move the cart, eliminating the static-friction **limit-cycle wobble** that no Kp/Kd value can remove.
-- **Live PID tuning over Bluetooth** — the vendor's firmware tuned gains over a framed protocol; I replaced it with single-character commands. Select a gain (`1`–`5`) and step it with `+`/`-`; flip the velocity sign live (`Y`). A 6-channel plot streams on USART1. No recompile.
-- **Flash-persisted config** — I rewrote the vendor's flash save. `W` saves the gains, dead zone, midpoint and velocity sign to the last flash page, with the valid marker written last. A **read-back check** shows `S` (saved) or `X` (failed) on the OLED, and `L` when a saved config loaded at boot. The midpoint always boots at 0, so a stale saved value can't break startup. `Z` erases.
+- **Live PID tuning over Bluetooth** — the Bluetooth interface accepts single-character commands. Select a gain (`1`–`5`) and step it with `+`/`-`; flip the velocity sign live (`Y`). A 6-channel plot streams on USART1. No recompile.
+- **Flash-persisted config** — Configuration is stored in internal flash. `W` saves the gains, dead zone, midpoint and velocity sign to the last flash page, with the valid marker written last. A **read-back check** shows `S` (saved) or `X` (failed) on the OLED, and `L` when a saved config loaded at boot. The midpoint always boots at 0, so a stale saved value can't break startup. `Z` erases.
 - **Bluetooth remote** — HC-05 SPP, single-character commands; drive `F/B/L/R/S` only set `vx`/`vw` targets while the balance loop keeps the cart upright. `L`/`R` steer through the turn loop, which `T` switches on.
 - **Ultrasonic obstacle avoidance** — my HC-SR04 driver times the echo with the DWT cycle counter, and the sensor is read about 20 times a second. Forward drive is always blocked under 20 cm. `O` enables a **scan-and-turn state machine** (`Robot/ax_avoid.c`): under 25 cm it stops the cart and commands an in-place turn to sweep the fixed sensor ±60°, then turns toward the clearest heading. It steers through the turn loop, which is off by default (`T` switches it on), and only sets the drive targets.
-- **Self-recovery & safety** — the vendor's fall protection cuts the motors past ±45°, and `Balance_PutDown()` re-arms when the cart is set upright and nudged; I made both measure from the balance midpoint. The velocity integral is clamped. Output caps on each loop and an int32 PWM mix guard against runaway and overflow.
+- **Self-recovery & safety** — fall protection cuts the motors past ±45°, and `Balance_PutDown()` re-arms when the cart is set upright and nudged; both measure from the balance midpoint. The velocity integral is clamped. Output caps on each loop and an int32 PWM mix guard against runaway and overflow.
 - **OLED telemetry** — SSD1306, two views (`D` toggles): **RUN** (avoidance state / distance / drive targets / angle) and **TUNE** (live gains).
 
 ---
 
 ## Bluetooth command set
 
-HC-05 on **USART2 @ 9600** (transparent SPP). Send single characters from any BT serial app (*Serial Bluetooth Terminal* on Android works well — map each letter to a macro button). Parsed in `Robot/ax_control.c`. These 21 commands replace the vendor's framed Bluetooth protocol.
+HC-05 on **USART2 @ 9600** (transparent SPP). Send single characters from any BT serial app (*Serial Bluetooth Terminal* on Android works well — map each letter to a macro button). Parsed in `Robot/ax_control.c`. The 21 commands are listed below.
 
 | Group | Keys |
 |-------|------|
@@ -68,7 +68,7 @@ Full tuning procedure: **[TUNING.en.md](TUNING.en.md)** (English) · **[TUNING.m
 | HC-05 | USART2 | PA2 / PA3 |
 | Heartbeat LED | GPIO | PC13 |
 
-**Notable**: the encoder pins are the vendor's choice. TIM2/TIM3 are remapped onto **5 V-tolerant** pins (the default PA0/1/6/7 are not), letting the TB6612 board's 5 V Hall signals wire straight to the 3.3 V MCU. JTAG is disabled (SWD kept) to free those pins.
+**Notable**: TIM2/TIM3 are remapped onto **5 V-tolerant** pins (the default PA0/1/6/7 are not), letting the TB6612 board's 5 V Hall signals wire straight to the 3.3 V MCU. JTAG is disabled (SWD kept) to free those pins.
 
 ---
 

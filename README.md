@@ -10,9 +10,9 @@ I built this on a TARKBOT R3T chassis. I designed the balance control: an angle 
 
 ## What I did
 
-I wrote a new motor driver for the TB6612 board, because the vendor's code drove a different H-bridge. It runs both motors from two 20 kHz PWM channels on one timer.
+I wrote a motor driver for the TB6612 board. It runs both motors from two 20 kHz PWM channels on one timer.
 
-The vendor's firmware could already tune gains over Bluetooth and save settings to flash, through a framed protocol for its own phone app. I replaced that protocol with single-character commands that any Bluetooth serial app can send. Bytes come in through an interrupt into a small ring buffer. I also rewrote the flash save. The gains go to the last page of internal flash with the valid marker written last, and if the read-back doesn't match, the OLED says the save failed.
+The Bluetooth interface uses single-character commands that any Bluetooth serial app can send. Bytes come in through an interrupt into a small ring buffer. I also rewrote the flash save. The gains go to the last page of internal flash with the valid marker written last, and if the read-back doesn't match, the OLED says the save failed.
 
 I also added a six-channel telemetry stream on the UART, every 20 ms. That's how I found the sign error below.
 
@@ -30,7 +30,7 @@ Cold starts from the battery sometimes failed. The IMU was initialized before it
 |:---:|:---:|
 | <img src="CC3200/images/cc3200_balancing.gif" width="220" alt="CC3200 cart balancing"> | <img src="CC3200/images/cc3200_oled.gif" width="220" alt="CC3200 OLED status"> |
 
-The second build runs on a TI CC3200 and started as my final project for EEC 172 (Embedded Systems) at UC Davis in Spring 2026. It's bare-metal C: an adapted Kalman filter for tilt, an angle PD loop, a power-on self-test and I2C bus recovery. When the cart falls past 35 degrees it stops the motors and posts one alert to an AWS IoT Thing Shadow over TLS, using the Wi-Fi code from a course lab. That firmware now has its own repository with unit tests and CI: [cc3200-balancing-cart](https://github.com/ChenSiyun1234/cc3200-balancing-cart).
+The second build runs on a TI CC3200 and started as my final project for EEC 172 (Embedded Systems) at UC Davis in Spring 2026. It's bare-metal C: an adapted Kalman filter for tilt, an angle PD loop, a power-on self-test and I2C bus recovery. When the cart falls past 35 degrees it stops the motors and posts one alert to an AWS IoT Thing Shadow over TLS. That firmware now has its own repository with unit tests and CI: [cc3200-balancing-cart](https://github.com/ChenSiyun1234/cc3200-balancing-cart).
 
 ## Apps
 

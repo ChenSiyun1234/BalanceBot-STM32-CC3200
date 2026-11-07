@@ -28,7 +28,7 @@ Self-balancing two-wheel robot on a **TI CC3200 LaunchPad** (Cortex-M4 + on-chip
 - **Motor drive** — TB6612FNG dual H-bridge at ~19.6 kHz PWM (inaudible).
 - **Colour telemetry** — SSD1351 128×128 OLED (SPI) shows state, tilt, motor output, and live PID gains.
 - **Live serial tuning** — adjust the balance gains over the UART0 console at runtime; no recompile.
-- **Wi-Fi alerts** *(optional)* — posts an "online" message at power-on and at most one alert per fall to an **AWS IoT Thing Shadow over HTTPS/TLS**. The Wi-Fi/TLS code comes from the course's lab project (see [Credits](#credits)).
+- **Wi-Fi alerts** *(optional)* — posts an "online" message at power-on and at most one alert per fall to an **AWS IoT Thing Shadow over HTTPS/TLS**.
 
 > The encoder and velocity-loop code is included; both are switched off in [`src/hw_config.h`](src/hw_config.h) for this build.
 

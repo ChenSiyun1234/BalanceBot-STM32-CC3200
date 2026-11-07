@@ -5,10 +5,10 @@
  * MPU6050 data-ready interrupt (DMP, EXTI line 5). For this cart in particular:
  *
  *   1. IMU axis: this cart's forward/back tilt is rotation about the Y axis, so
- *      the balance angle/rate use the DMP PITCH outputs angle[1] / gyro[1]
- *      (the vendor's OpenCTR cart tilted about X and used [0]). Yaw stays gyro[2].
- *   2. Motors: the vendor drives its on-board H-bridge as A=-pwm_l, B=+pwm_r;
- *      we keep that and route it to the TB6612 (AX_MOTOR_A/B_SetSpeed). As on the
+ *      the balance angle/rate use the DMP PITCH outputs angle[1] / gyro[1].
+ *      Yaw stays gyro[2].
+ *   2. Motors: route the wheel PWM values to the TB6612 through
+ *      AX_MOTOR_A/B_SetSpeed. As on the
  *      CC3200 build (same R3T chassis), a forward lean must spin BOTH wheels
  *      forward - if a wheel runs the wrong way, swap that motor's AIN1/AIN2 (or
  *      BIN1/BIN2) wires, or flip the sign in the SetSpeed call below.
@@ -124,7 +124,7 @@ void EXTI9_5_IRQHandler(void)
 
         if (ax_robot_move_enable == 1)
         {
-            AX_MOTOR_A_SetSpeed((int16_t)wheel_pwm_l);    /* both signs flipped vs vendor for this cart's wiring: */
+            AX_MOTOR_A_SetSpeed((int16_t)wheel_pwm_l);    /* motor directions follow this cart's wiring: */
             AX_MOTOR_B_SetSpeed((int16_t)wheel_pwm_r);    /* wheels now co-rotate AND a forward lean drives them forward (catch) */
         }
         else

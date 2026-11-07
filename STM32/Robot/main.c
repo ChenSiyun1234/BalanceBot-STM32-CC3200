@@ -7,7 +7,7 @@
  *   - Encoders : A=TIM2(PA15,PB3)  B=TIM3(PB4,PB5)  [remapped onto FT pins so the
  *                MD220A's 5V Hall signals are safe; default PA0/1/6/7 aren't FT]
  *   - OLED     : JiangXie SSD1306, GND=PB6 VCC=PB7 SCL=PB8 SDA=PB9 (soft I2C)
- *   - HC-05 BT : USART2  TX=PA2  RX=PA3  (XTARK app protocol)
+ *   - HC-05 BT : USART2  TX=PA2  RX=PA3  (Bluetooth command protocol)
  *   - HC-SR04  : TRIG=PB0  ECHO=PA12
  *   - LED      : on-board PC13 (heartbeat)
  *   - UART1    : PA9/PA10 debug printf (optional)
@@ -59,7 +59,7 @@ int main(void)
 	AX_CFG_Load();   /* if a tuned config was saved (BT 'W'), load it over the code defaults */
 
 	/* Cold-boot settle: let the 3.3V rail + MPU6050 finish powering up before we
-	   init OLED/MPU. The vendor waits ~2 s here; without it a cold battery start
+	   init OLED/MPU. Without this settling delay, a cold battery start
 	   runs MPU init too early -> it fails -> the DMP never loads -> the balance ISR
 	   never fires and only the PC13 heartbeat blinks (a manual RESET "fixes" it
 	   because the rails are already up). */
