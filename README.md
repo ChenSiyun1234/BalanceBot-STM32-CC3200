@@ -30,7 +30,7 @@ Cold starts from the battery sometimes failed. The IMU was initialized before it
 |:---:|:---:|
 | <img src="CC3200/images/cc3200_balancing.gif" width="220" alt="CC3200 cart balancing"> | <img src="CC3200/images/cc3200_oled.gif" width="220" alt="CC3200 OLED status"> |
 
-The second build runs on a TI CC3200 and started as my final project for EEC 172 (Embedded Systems) at UC Davis in Spring 2026. It's bare-metal C: an adapted Kalman filter for tilt, an angle PD loop, a power-on self-test and I2C bus recovery. When the cart falls past 35 degrees it stops the motors and posts one alert to an AWS IoT Thing Shadow over TLS. That firmware now has its own repository with unit tests and CI: [cc3200-balancing-cart](https://github.com/ChenSiyun1234/cc3200-balancing-cart).
+The second build runs on a TI CC3200 and started as my final project for an embedded systems course in Spring 2026. It's bare-metal C: an adapted Kalman filter for tilt, an angle PD loop, a power-on self-test and I2C bus recovery. When the cart falls past 35 degrees it stops the motors and posts one alert to an AWS IoT Thing Shadow over TLS. That firmware now has its own repository with unit tests and CI: [cc3200-balancing-cart](https://github.com/ChenSiyun1234/cc3200-balancing-cart).
 
 ## Apps
 
@@ -51,7 +51,7 @@ The parts list is in [hardware/BOM.en.md](hardware/BOM.en.md). The control loop 
 ## Credits
 
 - XTARK, maker of the TARKBOT R3T: the starting gains, the FreeRTOS task setup and the files marked "adapted from XTARK OpenCTR".
-- EEC 172, UC Davis: the CC3200 Wi-Fi and TLS code (`CC3200/src/network_utils.c/.h`) comes from the course's `aws-rest-api-ssl-demo` lab project, which builds on TI's SimpleLink SSL example. The OLED graphics are Adafruit GFX as ported for the course.
+- The embedded systems course: the CC3200 Wi-Fi and TLS code (`CC3200/src/network_utils.c/.h`) comes from the course's `aws-rest-api-ssl-demo` lab project, which builds on TI's SimpleLink SSL example. The OLED graphics are Adafruit GFX as ported for the course.
 - Kristian Lauszus (TKJ Electronics): the Kalman filter math in `CC3200/src/kalman.c` follows his KalmanFilter library (GPL-2.0).
 - FreeRTOS, ST's StdPeriph library, InvenSense's motion driver and TI's CC3200 SDK.
 
